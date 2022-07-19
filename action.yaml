@@ -1,0 +1,49 @@
+name: "Prepare test"
+description: Performs some preparation to run tests
+inputs:
+  ADMIN_PAT:
+    description: ADMIN_PAT
+    required: true
+  AWS_ACCESS_KEY_ID:
+    description: AWS_ACCESS_KEY_ID
+    required: true
+  AWS_SECRET_ACCESS_KEY:
+    description: AWS_ACCESS_KEY_ID
+    required: true
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v3
+      if: github.ref != 'refs/heads/master'
+      with:
+        persist-credentials: false
+        fetch-depth: 1
+    - uses: actions/checkout@v3
+      if: github.ref == 'refs/heads/master'
+      with:
+        token: ${{ inputs.ADMIN_PAT }}
+        fetch-depth: 1
+    - run: git config --global user.name "GitHub Actions"
+      shell: bash
+    - run: git config --global user.email "actions@users.noreply.github.com"
+      shell: bash
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 16.15
+        cache: 'npm'
+        cache-dependency-path: '**/package-lock.json'
+    - name: Configure NPM registry
+      run: npm config set '@circle9r:registry' 'https://npm.pkg.github.com/'
+      shell: bash
+    - name: Configure NPM registry
+      run: npm config set '//npm.pkg.github.com/:_authToken' ${{ inputs.ADMIN_PAT }}
+      shell: bash
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ inputs.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ inputs.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1

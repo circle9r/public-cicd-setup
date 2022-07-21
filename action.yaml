@@ -13,6 +13,9 @@ inputs:
   AWS_REGISTRY:
     description: AWS_REGISTRY
     required: true
+  VERSION_TAG:
+    description: VERSION_TAG
+    required: false
 runs:
   using: composite
   steps:
@@ -22,6 +25,7 @@ runs:
       with:
         persist-credentials: false
         fetch-depth: 1
+        ref: ${{ inputs.VERSION_TAG }}
     - name: Checkout Repo as Admin
       uses: actions/checkout@v3
       if: github.ref == 'refs/heads/master'

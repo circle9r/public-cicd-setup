@@ -16,22 +16,33 @@ inputs:
   VERSION_TAG:
     description: VERSION_TAG
     required: false
+    default: 'master'
+  REPOSITORY:
+    description: REPOSITORY
+    required: false
 runs:
   using: composite
   steps:
+    - name: Debug
+      run: echo "${{ github.ref }}"
+      # run: echo "${{ fromJson(github) }}"
+      shell: bash
     - name: Checkout Repo
       uses: actions/checkout@v3
-      if: github.ref != 'refs/heads/master'
+      if: github.ref_name != 'master'
       with:
         persist-credentials: false
         fetch-depth: 1
         ref: ${{ inputs.VERSION_TAG }}
+        repository: ${{ inputs.REPOSITORY }}
     - name: Checkout Repo as Admin
       uses: actions/checkout@v3
-      if: github.ref == 'refs/heads/master'
+      if: github.ref_name == 'master'
       with:
         token: ${{ inputs.ADMIN_PAT }}
         fetch-depth: 1
+        ref: ${{ inputs.VERSION_TAG }}
+        repository: ${{ inputs.REPOSITORY }}
     - name: Git Config
       run: |
         git config --global user.name "GitHub Actions"

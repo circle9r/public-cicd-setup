@@ -16,7 +16,6 @@ inputs:
   VERSION_TAG:
     description: VERSION_TAG
     required: false
-    default: 'master'
   REPOSITORY:
     description: REPOSITORY
     required: false

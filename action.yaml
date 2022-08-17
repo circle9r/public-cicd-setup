@@ -50,6 +50,9 @@ runs:
     - name: Configure NPM registry
       run: npm config set '//npm.pkg.github.com/:_authToken' ${{ inputs.ADMIN_PAT }}
       shell: bash
+    - name: Setup NPM globals
+      run: npm i -g @circle9r/bison-cicd@latest
+      shell: bash
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:

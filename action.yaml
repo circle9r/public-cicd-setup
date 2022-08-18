@@ -19,6 +19,10 @@ inputs:
   REPOSITORY:
     description: REPOSITORY
     required: false
+  REPO_DEPTH:
+    description: REPO_DEPTH
+    required: false
+    default: "1"
 runs:
   using: composite
   steps:
@@ -30,7 +34,7 @@ runs:
       with:
         token: ${{ github.ref_name == 'master' && inputs.ADMIN_PAT || github.token }}
         persist-credentials: ${{ github.ref_name == 'master' }}
-        fetch-depth: 1
+        fetch-depth: ${{ inputs.REPO_DEPTH }}
         ref: ${{ inputs.VERSION_TAG }}
         repository: ${{ inputs.REPOSITORY }}
     - name: Git Config

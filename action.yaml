@@ -23,6 +23,10 @@ inputs:
     description: REPO_DEPTH
     required: false
     default: "1"
+  DISABLE_NPM_CACHE:
+    description: Skip npm cache setup for non-Node projects
+    required: false
+    default: false
 runs:
   using: composite
   steps:
@@ -44,10 +48,16 @@ runs:
       shell: bash
     - name: Setup Nodejs
       uses: actions/setup-node@v3
+      if: inputs.DISABLE_NPM_CACHE == false
       with:
         node-version: 16.17
         cache: 'npm'
         cache-dependency-path: '**/package-lock.json'
+    - name: Setup Nodejs Without Cache
+      uses: actions/setup-node@v3
+      if: inputs.DISABLE_NPM_CACHE == true
+      with:
+        node-version: 16.17
     - name: Configure NPM registry
       run: npm config set '@circle9r:registry' 'https://npm.pkg.github.com/'
       shell: bash

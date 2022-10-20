@@ -24,9 +24,13 @@ inputs:
     required: false
     default: "1"
   DISABLE_NPM_CACHE:
-    description: Skip npm cache setup for non-Node projects
+    description: DISABLE_NPM_CACHE
     required: false
     default: "false"
+  SHEETJS_TOKEN:
+    description: SHEETJS_TOKEN
+    required: false
+    default: ""
 runs:
   using: composite
   steps:
@@ -58,11 +62,16 @@ runs:
       if: inputs.DISABLE_NPM_CACHE == 'true'
       with:
         node-version: 16.17
-    - name: Configure NPM registry
-      run: npm config set '@circle9r:registry' 'https://npm.pkg.github.com/'
+    - name: Configure NPM registry for Bison
+      run: |
+        npm config set '@circle9r:registry' 'https://npm.pkg.github.com/'
+        npm config set '//npm.pkg.github.com/:_authToken' ${{ inputs.ADMIN_PAT }}
       shell: bash
-    - name: Configure NPM registry
-      run: npm config set '//npm.pkg.github.com/:_authToken' ${{ inputs.ADMIN_PAT }}
+    - name: Configure NPM registry for SheetJS
+      if: inputs.SHEETJS_TOKEN != ''
+      run: |
+        npm config set '@sheet:registry' 'https://pylon.sheetjs.com:54111/'
+        npm config set '//pylon.sheetjs.com:54111/:_authToken' ${{ inputs.SHEETJS_TOKEN }}
       shell: bash
     - name: Setup NPM globals
       run: npm i -g @circle9r/bison-cicd@1

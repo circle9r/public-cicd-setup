@@ -77,7 +77,7 @@ runs:
       run: npm i -g @circle9r/bison-cicd@1
       shell: bash
     - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v1
+      uses: aws-actions/configure-aws-credentials@v1-node16
       with:
         aws-access-key-id: ${{ inputs.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ inputs.AWS_SECRET_ACCESS_KEY }}
@@ -85,5 +85,6 @@ runs:
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
+      # uses: aws-actions/amazon-ecr-login@v1.5.2
       with:
         registries: ${{ inputs.AWS_REGISTRY }}

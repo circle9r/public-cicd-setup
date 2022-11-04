@@ -54,14 +54,14 @@ runs:
       uses: actions/setup-node@v3
       if: inputs.DISABLE_NPM_CACHE == 'false'
       with:
-        node-version: 16.17
+        node-version: 18.12
         cache: 'npm'
         cache-dependency-path: '**/package-lock.json'
     - name: Setup Nodejs Without Cache
       uses: actions/setup-node@v3
       if: inputs.DISABLE_NPM_CACHE == 'true'
       with:
-        node-version: 16.17
+        node-version: 18.12
     - name: Configure NPM registry for Bison
       run: |
         npm config set '@circle9r:registry' 'https://npm.pkg.github.com/'
@@ -85,6 +85,5 @@ runs:
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
-      # uses: aws-actions/amazon-ecr-login@v1.5.2
       with:
         registries: ${{ inputs.AWS_REGISTRY }}

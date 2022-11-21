@@ -40,8 +40,8 @@ runs:
     - name: Checkout Repo
       uses: actions/checkout@v3
       with:
-        token: ${{ github.ref_name == 'master' && inputs.ADMIN_PAT || github.token }}
-        persist-credentials: ${{ github.ref_name == 'master' }}
+        token: ${{ ( ( github.ref_name == 'master' || github.ref_name == 'main' ) && inputs.ADMIN_PAT ) || github.token }}
+        persist-credentials: ${{ github.ref_name == 'master' || github.ref_name == 'main' }}
         fetch-depth: ${{ inputs.REPO_DEPTH }}
         ref: ${{ inputs.VERSION_TAG }}
         repository: ${{ inputs.REPOSITORY }}

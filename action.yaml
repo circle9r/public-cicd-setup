@@ -23,6 +23,10 @@ inputs:
     description: REPO_DEPTH
     required: false
     default: "1"
+  NODE_VERSION:
+    description: NODE_VERSION
+    required: false
+    default: "18.12"
   DISABLE_NPM_CACHE:
     description: DISABLE_NPM_CACHE
     required: false
@@ -54,14 +58,14 @@ runs:
       uses: actions/setup-node@v3
       if: inputs.DISABLE_NPM_CACHE == 'false'
       with:
-        node-version: 18.12
+        node-version: ${{ inputs.NODE_VERSION }}
         cache: 'npm'
         cache-dependency-path: '**/package-lock.json'
     - name: Setup Nodejs Without Cache
       uses: actions/setup-node@v3
       if: inputs.DISABLE_NPM_CACHE == 'true'
       with:
-        node-version: 18.12
+        node-version: ${{ inputs.NODE_VERSION }}
     - name: Configure NPM registry for Bison
       run: |
         npm config set '@circle9r:registry' 'https://npm.pkg.github.com/'

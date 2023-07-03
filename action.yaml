@@ -78,7 +78,7 @@ runs:
         npm config set '//pylon.sheetjs.com:54111/:_authToken' ${{ inputs.SHEETJS_TOKEN }}
       shell: bash
     - name: Setup NPM globals
-      run: npm i -g @circle9r/bison-cicd@1
+      run: npm i -g @circle9r/bison-cicd@2
       shell: bash
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1-node16

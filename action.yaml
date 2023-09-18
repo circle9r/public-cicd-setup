@@ -66,6 +66,11 @@ runs:
       if: inputs.DISABLE_NPM_CACHE == 'true'
       with:
         node-version: ${{ inputs.NODE_VERSION }}
+    - name: Setup PNPM
+      uses: pnpm/action-setup@v2
+      if: inputs.DISABLE_NPM_CACHE == 'pnpm'
+      with:
+        version: 8.7.0
     - name: Setup Nodejs Using PNPM
       uses: actions/setup-node@v3
       if: inputs.DISABLE_NPM_CACHE == 'pnpm'

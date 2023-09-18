@@ -66,6 +66,13 @@ runs:
       if: inputs.DISABLE_NPM_CACHE == 'true'
       with:
         node-version: ${{ inputs.NODE_VERSION }}
+    - name: Setup Nodejs Using PNPM
+      uses: actions/setup-node@v3
+      if: inputs.DISABLE_NPM_CACHE == 'pnpm'
+      with:
+        node-version: ${{ inputs.NODE_VERSION }}
+        cache: 'pnpm'
+        cache-dependency-path: '**/pnpm-lock.yaml'
     - name: Configure NPM registry for Bison
       run: |
         npm config set '@circle9r:registry' 'https://npm.pkg.github.com/'

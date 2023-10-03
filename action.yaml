@@ -70,7 +70,7 @@ runs:
       uses: pnpm/action-setup@v2
       if: inputs.DISABLE_NPM_CACHE == 'pnpm'
       with:
-        version: 8.7.0
+        version: 8.6.2
     - name: Setup Nodejs Using PNPM
       uses: actions/setup-node@v3
       if: inputs.DISABLE_NPM_CACHE == 'pnpm'

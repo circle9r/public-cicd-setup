@@ -26,7 +26,7 @@ inputs:
   NODE_VERSION:
     description: NODE_VERSION
     required: false
-    default: "18.12"
+    default: "20.10"
   DISABLE_NPM_CACHE:
     description: DISABLE_NPM_CACHE
     required: false
@@ -42,7 +42,7 @@ runs:
       run: echo "${{ github.repository }}/${{ github.ref_name }}"
       shell: bash
     - name: Checkout Repo
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         token: ${{ ( ( github.ref_name == 'master' || github.ref_name == 'main' ) && inputs.ADMIN_PAT ) || github.token }}
         persist-credentials: ${{ github.ref_name == 'master' || github.ref_name == 'main' }}
@@ -55,14 +55,14 @@ runs:
         git config --global user.email "actions@users.noreply.github.com"
       shell: bash
     - name: Setup Nodejs
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       if: inputs.DISABLE_NPM_CACHE == 'false'
       with:
         node-version: ${{ inputs.NODE_VERSION }}
         cache: 'npm'
         cache-dependency-path: '**/package-lock.json'
     - name: Setup Nodejs Without Cache
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       if: inputs.DISABLE_NPM_CACHE == 'true'
       with:
         node-version: ${{ inputs.NODE_VERSION }}
@@ -70,9 +70,9 @@ runs:
       uses: pnpm/action-setup@v2
       if: inputs.DISABLE_NPM_CACHE == 'pnpm'
       with:
-        version: 8.6.2
+        version: 8.14.3
     - name: Setup Nodejs Using PNPM
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       if: inputs.DISABLE_NPM_CACHE == 'pnpm'
       with:
         node-version: ${{ inputs.NODE_VERSION }}
@@ -93,14 +93,14 @@ runs:
       run: npm i -g @circle9r/bison-cicd@2
       shell: bash
     - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v1-node16
+      uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ inputs.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ inputs.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
     - name: Login to Amazon ECR
       id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
+      uses: aws-actions/amazon-ecr-login@v2
       with:
         mask-password: 'true'
         registries: ${{ inputs.AWS_REGISTRY }}

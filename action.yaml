@@ -64,8 +64,8 @@ runs:
     - name: Install pnpm
       if: inputs.NODE_PACKAGE_MANAGER == 'pnpm'
       uses: pnpm/action-setup@v3
-        with:
-          version: 8
+      with:
+        version: 8
     
     - name: Setup Nodejs
       uses: actions/setup-node@v4

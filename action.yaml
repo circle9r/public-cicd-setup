@@ -144,4 +144,5 @@ runs:
 
     - name: Install dependencies
       if: inputs.NODE_PACKAGE_MANAGER == 'pnpm'
+      shell: bash
       run: pnpm install

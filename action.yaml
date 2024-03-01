@@ -35,12 +35,17 @@ inputs:
     description: SHEETJS_TOKEN
     required: false
     default: ""
+  NODE_PACKAGE_MANAGER:
+    description: "Node package manager npm, yarn, or pnpm"
+    required: false
+    default: "npm"
 runs:
   using: composite
   steps:
     - name: Debug
       run: echo "${{ github.repository }}/${{ github.ref_name }}"
       shell: bash
+
     - name: Checkout Repo
       uses: actions/checkout@v4
       with:
@@ -49,35 +54,30 @@ runs:
         fetch-depth: ${{ inputs.REPO_DEPTH }}
         ref: ${{ inputs.VERSION_TAG }}
         repository: ${{ inputs.REPOSITORY }}
+    
     - name: Git Config
       run: |
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@users.noreply.github.com"
       shell: bash
+
+    - name: Install pnpm
+      if: inputs.NODE_PACKAGE_MANAGER == 'pnpm'
+      uses: pnpm/action-setup@v3
+    
     - name: Setup Nodejs
       uses: actions/setup-node@v4
       if: inputs.DISABLE_NPM_CACHE == 'false'
       with:
         node-version: ${{ inputs.NODE_VERSION }}
-        cache: 'npm'
-        cache-dependency-path: '**/package-lock.json'
+        cache: ${{ inputs.NODE_PACKAGE_MANAGER }}
+
     - name: Setup Nodejs Without Cache
       uses: actions/setup-node@v4
       if: inputs.DISABLE_NPM_CACHE == 'true'
       with:
         node-version: ${{ inputs.NODE_VERSION }}
-    - name: Setup PNPM
-      uses: pnpm/action-setup@v2
-      if: inputs.DISABLE_NPM_CACHE == 'pnpm'
-      with:
-        version: 8.14.3
-    - name: Setup Nodejs Using PNPM
-      uses: actions/setup-node@v4
-      if: inputs.DISABLE_NPM_CACHE == 'pnpm'
-      with:
-        node-version: ${{ inputs.NODE_VERSION }}
-        cache: 'pnpm'
-        cache-dependency-path: '**/pnpm-lock.yaml'
+
     - name: Configure NPM registry for Bison
       run: |
         npm config set '@circle9r:registry' 'https://npm.pkg.github.com/'
@@ -104,3 +104,18 @@ runs:
       with:
         mask-password: 'true'
         registries: ${{ inputs.AWS_REGISTRY }}
+
+    - name: Get pnpm store directory
+      if: inputs.NODE_PACKAGE_MANAGER == 'pnpm'
+      shell: bash
+      run: |
+        echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+    - uses: actions/cache@v4
+      if: inputs.NODE_PACKAGE_MANAGER == 'pnpm'
+      name: Setup pnpm cache
+      with:
+        path: ${{ env.STORE_PATH }}
+        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-pnpm-store-

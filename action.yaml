@@ -64,8 +64,6 @@ runs:
     - name: Install pnpm
       if: inputs.NODE_PACKAGE_MANAGER == 'pnpm'
       uses: pnpm/action-setup@v3
-      with:
-        version: 8
     
     - name: Setup Nodejs
       uses: actions/setup-node@v4
@@ -73,32 +71,12 @@ runs:
       with:
         node-version: ${{ inputs.NODE_VERSION }}
         cache: ${{ inputs.NODE_PACKAGE_MANAGER }}
-        # Used to specify the path to a dependency file: package-lock.json, yarn.lock, etc. 
-        # It will generate hash from the target file for primary key. It works only If cache is specified.  
-        # Supports wildcards or a list of file names for caching multiple dependencies.
-        # Default: ''
-        # cache-dependency-path: '**/package-lock.json'
+
     - name: Setup Nodejs Without Cache
       uses: actions/setup-node@v4
       if: inputs.DISABLE_NPM_CACHE == 'true'
       with:
         node-version: ${{ inputs.NODE_VERSION }}
-
-    # Begin Backward compatible setup
-    - name: Setup PNPM
-      uses: pnpm/action-setup@v2
-      if: inputs.DISABLE_NPM_CACHE == 'pnpm'
-      with:
-        version: 8.14.3
-
-    - name: Setup Nodejs Using PNPM
-      uses: actions/setup-node@v4
-      if: inputs.DISABLE_NPM_CACHE == 'pnpm'
-      with:
-        node-version: ${{ inputs.NODE_VERSION }}
-        cache: 'pnpm'
-        cache-dependency-path: '**/pnpm-lock.yaml'
-    # End Backward compatible setip
 
     - name: Configure NPM registry for Bison
       run: |
@@ -141,8 +119,3 @@ runs:
         key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
         restore-keys: |
           ${{ runner.os }}-pnpm-store-
-
-    - name: Install dependencies
-      if: inputs.NODE_PACKAGE_MANAGER == 'pnpm'
-      shell: bash
-      run: pnpm install

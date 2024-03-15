@@ -39,6 +39,10 @@ inputs:
     description: "Node package manager npm, yarn, or pnpm"
     required: false
     default: "npm"
+  FILTER:
+    description: "Git filter mechanism, https://github.com/actions/checkout/blob/v4.1.2/action.yml#L56-L60"
+    required: false
+    default: null
 runs:
   using: composite
   steps:
@@ -54,6 +58,7 @@ runs:
         fetch-depth: ${{ inputs.REPO_DEPTH }}
         ref: ${{ inputs.VERSION_TAG }}
         repository: ${{ inputs.REPOSITORY }}
+        filter: ${{ inputs.FILTER }}
     
     - name: Git Config
       run: |

@@ -66,14 +66,14 @@ runs:
       uses: pnpm/action-setup@v3
     
     - name: Setup Nodejs
-      uses: actions/setup-node@v4
+      uses: useblacksmith/setup-node@v5
       if: inputs.DISABLE_NPM_CACHE == 'false'
       with:
         node-version: ${{ inputs.NODE_VERSION }}
         cache: ${{ inputs.NODE_PACKAGE_MANAGER }}
 
     - name: Setup Nodejs Without Cache
-      uses: actions/setup-node@v4
+      uses: useblacksmith/setup-node@v5
       if: inputs.DISABLE_NPM_CACHE == 'true'
       with:
         node-version: ${{ inputs.NODE_VERSION }}

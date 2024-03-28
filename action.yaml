@@ -46,7 +46,7 @@ runs:
     - name: Checkout Repo
       uses: actions/checkout@v4
       with:
-        token: ${{ inputs.ADMIN_PAT || github.token }}
+        token: 'fake'
         persist-credentials: ${{ github.ref_name == 'master' || github.ref_name == 'main' }}
         fetch-depth: ${{ inputs.REPO_DEPTH }}
         ref: ${{ inputs.VERSION_TAG }}

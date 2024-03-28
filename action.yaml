@@ -6,13 +6,10 @@ inputs:
     required: true
   AWS_ACCESS_KEY_ID:
     description: AWS_ACCESS_KEY_ID
-    required: true
   AWS_SECRET_ACCESS_KEY:
     description: AWS_SECRET_ACCESS_KEY
-    required: true
   AWS_REGISTRY:
     description: AWS_REGISTRY
-    required: true
   VERSION_TAG:
     description: VERSION_TAG
     required: false
@@ -94,6 +91,7 @@ runs:
       shell: bash
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
+      if: inputs.AWS_ACCESS_KEY_ID
       with:
         aws-access-key-id: ${{ inputs.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ inputs.AWS_SECRET_ACCESS_KEY }}
@@ -101,6 +99,7 @@ runs:
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
+      if: inputs.AWS_REGISTRY
       with:
         mask-password: 'true'
         registries: ${{ inputs.AWS_REGISTRY }}

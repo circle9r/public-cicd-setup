@@ -56,14 +56,6 @@ runs:
       run: echo "${{ github.repository }}/${{ github.ref_name }}"
       shell: bash
 
-    - name: Validate Inputs
-      run: |
-        if [[ -z "${{ inputs.VERSION_TAG }}" && -z "${{ inputs.REPOSITORY }}" ]]; then
-          echo "Error: VERSION_TAG or REPOSITORY must be provided."
-          exit 1
-        fi
-      shell: bash
-
     - name: Checkout Repository
       uses: actions/checkout@v4
       with:

@@ -1,44 +1,54 @@
 name: "Prepare test"
 description: Performs some preparation to run tests
+
 inputs:
   ADMIN_PAT:
-    description: ADMIN_PAT
+    description: Personal Access Token for admin operations
     required: true
   AWS_ACCESS_KEY_ID:
-    description: AWS_ACCESS_KEY_ID
+    description: AWS Access Key ID
     required: true
   AWS_SECRET_ACCESS_KEY:
-    description: AWS_SECRET_ACCESS_KEY
+    description: AWS Secret Access Key
     required: true
   AWS_REGISTRY:
-    description: AWS_REGISTRY
+    description: AWS ECR Registry
     required: true
+  AWS_REGION:
+    description: AWS region
+    required: false
+    default: "us-east-1"
   VERSION_TAG:
-    description: VERSION_TAG
+    description: Git repository version tag to checkout
     required: false
   REPOSITORY:
-    description: REPOSITORY
+    description: Git repository to checkout
     required: false
   REPO_DEPTH:
-    description: REPO_DEPTH
+    description: Git repository depth to fetch
     required: false
     default: "1"
   NODE_VERSION:
-    description: NODE_VERSION
+    description: Node.js version to setup
     required: false
     default: "20.10"
   DISABLE_NPM_CACHE:
-    description: DISABLE_NPM_CACHE
+    description: Disable npm cache
     required: false
     default: "false"
   SHEETJS_TOKEN:
-    description: SHEETJS_TOKEN
+    description: Token for SheetJS registry
     required: false
     default: ""
   NODE_PACKAGE_MANAGER:
-    description: "Node package manager npm, yarn, or pnpm"
+    description: Node package manager to use (npm, yarn, or pnpm)
     required: false
     default: "npm"
+  USE_BLACKSMITH:
+    description: Use the blacksmith setup actions
+    required: false
+    default: "false"
+
 runs:
   using: composite
   steps:
@@ -46,7 +56,7 @@ runs:
       run: echo "${{ github.repository }}/${{ github.ref_name }}"
       shell: bash
 
-    - name: Checkout Repo
+    - name: Checkout Repository
       uses: actions/checkout@v4
       with:
         token: ${{ ( ( github.ref_name == 'master' || github.ref_name == 'main' ) && inputs.ADMIN_PAT ) || github.token }}
@@ -54,7 +64,7 @@ runs:
         fetch-depth: ${{ inputs.REPO_DEPTH }}
         ref: ${{ inputs.VERSION_TAG }}
         repository: ${{ inputs.REPOSITORY }}
-    
+
     - name: Git Config
       run: |
         git config --global user.name "GitHub Actions"
@@ -64,16 +74,16 @@ runs:
     - name: Install pnpm
       if: inputs.NODE_PACKAGE_MANAGER == 'pnpm'
       uses: pnpm/action-setup@v3
-    
+
     - name: Setup Nodejs
-      uses: actions/setup-node@v4
+      uses: ${{ inputs.USE_BLACKSMITH == 'true' ? 'useblacksmith/setup-node@v5' : 'actions/setup-node@v4' }}
       if: inputs.DISABLE_NPM_CACHE == 'false'
       with:
         node-version: ${{ inputs.NODE_VERSION }}
         cache: ${{ inputs.NODE_PACKAGE_MANAGER }}
 
     - name: Setup Nodejs Without Cache
-      uses: actions/setup-node@v4
+      uses: ${{ inputs.USE_BLACKSMITH == 'true' ? 'useblacksmith/setup-node@v5' : 'actions/setup-node@v4' }}
       if: inputs.DISABLE_NPM_CACHE == 'true'
       with:
         node-version: ${{ inputs.NODE_VERSION }}
@@ -83,21 +93,25 @@ runs:
         npm config set '@circle9r:registry' 'https://npm.pkg.github.com/'
         npm config set '//npm.pkg.github.com/:_authToken' ${{ inputs.ADMIN_PAT }}
       shell: bash
+
     - name: Configure NPM registry for SheetJS
       if: inputs.SHEETJS_TOKEN != ''
       run: |
         npm config set '@sheet:registry' 'https://pylon.sheetjs.com:54111/'
         npm config set '//pylon.sheetjs.com:54111/:_authToken' ${{ inputs.SHEETJS_TOKEN }}
       shell: bash
-    - name: Setup NPM globals
+
+    - name: Install Global NPM Packages
       run: npm i -g @circle9r/bison-cicd@2
       shell: bash
+
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ inputs.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ inputs.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+        aws-region: ${{ inputs.AWS_REGION }}
+
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
@@ -105,15 +119,15 @@ runs:
         mask-password: 'true'
         registries: ${{ inputs.AWS_REGISTRY }}
 
-    - name: Get pnpm store directory
+    - name: Get pnpm Store Directory
       if: inputs.NODE_PACKAGE_MANAGER == 'pnpm'
       shell: bash
       run: |
         echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-    - uses: actions/cache@v4
-      if: inputs.NODE_PACKAGE_MANAGER == 'pnpm'
-      name: Setup pnpm cache
+    - name: Setup pnpm Cache
+      if: ${{ inputs.NODE_PACKAGE_MANAGER == 'pnpm' }}
+      uses: ${{ inputs.USE_BLACKSMITH == 'true' ? 'useblacksmith/cache@v5' : 'actions/cache@v4' }}
       with:
         path: ${{ env.STORE_PATH }}
         key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}

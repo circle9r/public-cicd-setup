@@ -75,16 +75,29 @@ runs:
       if: inputs.NODE_PACKAGE_MANAGER == 'pnpm'
       uses: pnpm/action-setup@v3
 
-    - name: Setup Nodejs
-      uses: ${{ inputs.USE_BLACKSMITH == 'true' ? 'useblacksmith/setup-node@v5' : 'actions/setup-node@v4' }}
-      if: inputs.DISABLE_NPM_CACHE == 'false'
+    - name: Setup Nodejs Blacksmith
+      if: inputs.DISABLE_NPM_CACHE == 'false' && inputs.USE_BLACKSMITH == 'true'
+      uses: useblacksmith/setup-node@v5
       with:
         node-version: ${{ inputs.NODE_VERSION }}
         cache: ${{ inputs.NODE_PACKAGE_MANAGER }}
 
-    - name: Setup Nodejs Without Cache
-      uses: ${{ inputs.USE_BLACKSMITH == 'true' ? 'useblacksmith/setup-node@v5' : 'actions/setup-node@v4' }}
-      if: inputs.DISABLE_NPM_CACHE == 'true'
+    - name: Setup Nodejs Non Blacksmith
+      if: inputs.DISABLE_NPM_CACHE == 'false' && inputs.USE_BLACKSMITH != 'true'
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.NODE_VERSION }}
+        cache: ${{ inputs.NODE_PACKAGE_MANAGER }}
+
+    - name: Setup Nodejs Without Cache Blacksmith
+      if: inputs.DISABLE_NPM_CACHE == 'true' && inputs.USE_BLACKSMITH == 'true'
+      uses: useblacksmith/setup-node@v5
+      with:
+        node-version: ${{ inputs.NODE_VERSION }}
+
+    - name: Setup Nodejs Without Cache Non Blacksmith
+      if: inputs.DISABLE_NPM_CACHE == 'true' && inputs.USE_BLACKSMITH != 'true'
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ inputs.NODE_VERSION }}
 
@@ -125,9 +138,18 @@ runs:
       run: |
         echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-    - name: Setup pnpm Cache
-      if: ${{ inputs.NODE_PACKAGE_MANAGER == 'pnpm' }}
-      uses: ${{ inputs.USE_BLACKSMITH == 'true' ? 'useblacksmith/cache@v5' : 'actions/cache@v4' }}
+    - name: Setup pnpm Cache Blacksmith
+      if: inputs.NODE_PACKAGE_MANAGER == 'pnpm' && inputs.USE_BLACKSMITH == 'true'
+      uses: useblacksmith/cache@v5
+      with:
+        path: ${{ env.STORE_PATH }}
+        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-pnpm-store-
+
+    - name: Setup pnpm Cache Non Blacksmith
+      if: inputs.NODE_PACKAGE_MANAGER == 'pnpm' && inputs.USE_BLACKSMITH != 'true'
+      uses: actions/cache@v4
       with:
         path: ${{ env.STORE_PATH }}
         key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}

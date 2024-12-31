@@ -31,7 +31,7 @@ inputs:
   NODE_VERSION:
     description: Node.js version to setup
     required: false
-    default: "20.10"
+    default: "22.12"
   DISABLE_NPM_CACHE:
     description: Disable npm cache
     required: false

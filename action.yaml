@@ -115,7 +115,7 @@ runs:
       shell: bash
 
     - name: Install Global NPM Packages
-      run: npm i -g @circle9r/bison-cicd@2
+      run: npm i -g @circle9r/bison-cicd@3
       shell: bash
 
     - name: Configure AWS Credentials

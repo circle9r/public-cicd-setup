@@ -36,6 +36,10 @@ inputs:
     description: Disable npm cache
     required: false
     default: "false"
+  BUF_TOKEN:
+    description: Token for Buf registry
+    required: false
+    default: ""
   SHEETJS_TOKEN:
     description: Token for SheetJS registry
     required: false
@@ -51,7 +55,7 @@ inputs:
   FILTER:
     description: Git checkout filter
     required: false
-    default: null
+    default: ""
 
 runs:
   using: composite
@@ -111,6 +115,13 @@ runs:
       run: |
         npm config set '@circle9r:registry' 'https://npm.pkg.github.com/'
         npm config set '//npm.pkg.github.com/:_authToken' ${{ inputs.ADMIN_PAT }}
+      shell: bash
+
+    - name: Configure NPM registry for Buf
+      if: inputs.BUF_TOKEN != ''
+      run: |
+        npm config set '@buf:registry' 'https://buf.build/gen/npm/v1/'
+        npm config set '//buf.build/gen/npm/v1/:_authToken' ${{ inputs.BUF_TOKEN }}
       shell: bash
 
     - name: Configure NPM registry for SheetJS

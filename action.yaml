@@ -66,7 +66,7 @@ runs:
 
     # https://github.com/actions/checkout/blob/v4.1.2/action.yml
     - name: Checkout Repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         token: ${{ ( ( github.ref_name == 'master' || github.ref_name == 'main' ) && inputs.ADMIN_PAT ) || github.token }}
         persist-credentials: ${{ github.ref_name == 'master' || github.ref_name == 'main' }}
@@ -94,7 +94,7 @@ runs:
 
     - name: Setup Nodejs Non Blacksmith
       if: inputs.DISABLE_NPM_CACHE == 'false' && inputs.USE_BLACKSMITH != 'true'
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version: ${{ inputs.NODE_VERSION }}
         cache: ${{ inputs.NODE_PACKAGE_MANAGER }}
@@ -107,7 +107,7 @@ runs:
 
     - name: Setup Nodejs Without Cache Non Blacksmith
       if: inputs.DISABLE_NPM_CACHE == 'true' && inputs.USE_BLACKSMITH != 'true'
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version: ${{ inputs.NODE_VERSION }}
 
@@ -137,7 +137,7 @@ runs:
 
     - name: Configure AWS Credentials
       if: inputs.AWS_ACCESS_KEY_ID
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v6
       with:
         aws-access-key-id: ${{ inputs.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ inputs.AWS_SECRET_ACCESS_KEY }}
@@ -168,7 +168,7 @@ runs:
 
     - name: Setup pnpm Cache Non Blacksmith
       if: inputs.NODE_PACKAGE_MANAGER == 'pnpm' && inputs.USE_BLACKSMITH != 'true'
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ${{ env.STORE_PATH }}
         key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}

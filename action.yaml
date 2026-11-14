@@ -3,8 +3,29 @@ description: Performs some preparation to run tests
 
 inputs:
   ADMIN_PAT:
-    description: Personal Access Token for admin operations
-    required: true
+    description: >-
+      DEPRECATED (risk register R-51). Org-admin token. Still honoured when passed, as the npm token and, on
+      main/master, for the checkout; replaced by NPM_TOKEN and the GitHub App inputs below.
+    required: false
+    default: ""
+  NPM_TOKEN:
+    description: Read-only token (read:packages) for the @circle9r packages on GitHub Packages. Used on every branch.
+    required: false
+    default: ""
+  APP_ID:
+    description: GitHub App ID for main/master builds (version push, workflow triggers). Pass vars.BISON_CI_APP_ID.
+    required: false
+    default: ""
+  APP_PRIVATE_KEY:
+    description: >-
+      GitHub App private key. Keep it as a secret of a `release` environment that only main/master can use, so
+      branch builds never receive it. Ignored outside main/master.
+    required: false
+    default: ""
+  APP_REPOSITORIES:
+    description: Extra repositories (comma-separated names, e.g. "infra") the App token may reach besides the checked-out one.
+    required: false
+    default: ""
   AWS_ACCESS_KEY_ID:
     description: AWS Access Key ID
     required: false
@@ -53,6 +74,13 @@ inputs:
     required: false
     default: ""
 
+outputs:
+  token:
+    description: >-
+      On main/master: the GitHub App token (or ADMIN_PAT when no App is configured); otherwise the workflow's GITHUB_TOKEN.
+      Use it for later steps that call the GitHub API, e.g. GITHUB_AUTH_TOKEN for `bison-cicd setup github`.
+    value: ${{ steps.app-token.outputs.token || steps.fallback.outputs.token }}
+
 runs:
   using: composite
   steps:
@@ -60,11 +88,50 @@ runs:
       run: echo "${{ github.repository }}/${{ github.ref_name }}"
       shell: bash
 
+    - name: App Token Repositories
+      id: app-repos
+      if: (github.ref_name == 'master' || github.ref_name == 'main') && inputs.APP_ID != '' && inputs.APP_PRIVATE_KEY != ''
+      shell: bash
+      env:
+        CHECKOUT_REPO: ${{ inputs.REPOSITORY || github.repository }}
+        EXTRA: ${{ inputs.APP_REPOSITORIES }}
+      run: |
+        names="${CHECKOUT_REPO##*/}"
+        [ -n "$EXTRA" ] && names="$names,$EXTRA"
+        echo "names=$names" >> "$GITHUB_OUTPUT"
+
+    # Short-lived (1 h) installation token, limited to the listed repositories
+    - name: GitHub App Token
+      id: app-token
+      if: steps.app-repos.outcome == 'success'
+      uses: actions/create-github-app-token@v2
+      with:
+        app-id: ${{ inputs.APP_ID }}
+        private-key: ${{ inputs.APP_PRIVATE_KEY }}
+        owner: ${{ github.repository_owner }}
+        repositories: ${{ steps.app-repos.outputs.names }}
+
+    - name: Token Fallback
+      id: fallback
+      if: steps.app-token.outcome != 'success'
+      shell: bash
+      env:
+        ON_MAIN: ${{ github.ref_name == 'master' || github.ref_name == 'main' }}
+        PAT: ${{ inputs.ADMIN_PAT }}
+        WORKFLOW_TOKEN: ${{ github.token }}
+      run: |
+        if [ "$ON_MAIN" = "true" ] && [ -n "$PAT" ]; then
+          echo "::warning::ADMIN_PAT is deprecated (R-51); pass APP_ID/APP_PRIVATE_KEY and NPM_TOKEN instead."
+          echo "token=$PAT" >> "$GITHUB_OUTPUT"
+        else
+          echo "token=$WORKFLOW_TOKEN" >> "$GITHUB_OUTPUT"
+        fi
+
     # https://github.com/actions/checkout/blob/v4.1.2/action.yml
     - name: Checkout Repository
       uses: actions/checkout@v6
       with:
-        token: ${{ ( ( github.ref_name == 'master' || github.ref_name == 'main' ) && inputs.ADMIN_PAT ) || github.token }}
+        token: ${{ steps.app-token.outputs.token || steps.fallback.outputs.token }}
         persist-credentials: ${{ github.ref_name == 'master' || github.ref_name == 'main' }}
         fetch-depth: ${{ inputs.REPO_DEPTH }}
         ref: ${{ inputs.VERSION_TAG }}
@@ -94,7 +161,9 @@ runs:
     - name: Configure NPM registry for Bison
       run: |
         npm config set '@circle9r:registry' 'https://npm.pkg.github.com/'
-        npm config set '//npm.pkg.github.com/:_authToken' ${{ inputs.ADMIN_PAT }}
+        npm config set '//npm.pkg.github.com/:_authToken' "$NPM_AUTH"
+      env:
+        NPM_AUTH: ${{ inputs.NPM_TOKEN || inputs.ADMIN_PAT || github.token }}
       shell: bash
 
     - name: Configure NPM registry for Buf

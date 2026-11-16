@@ -31,7 +31,7 @@ inputs:
   NODE_VERSION:
     description: Node.js version to setup
     required: false
-    default: "24.11"
+    default: "26.13"
   DISABLE_NPM_CACHE:
     description: Disable npm cache
     required: false
@@ -48,10 +48,6 @@ inputs:
     description: Node package manager to use (npm, yarn, or pnpm)
     required: false
     default: "npm"
-  USE_BLACKSMITH:
-    description: Use the blacksmith setup actions
-    required: false
-    default: "false"
   FILTER:
     description: Git checkout filter
     required: false
@@ -80,10 +76,6 @@ runs:
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@users.noreply.github.com"
       shell: bash
-
-    - name: Install pnpm
-      if: inputs.NODE_PACKAGE_MANAGER == 'pnpm'
-      uses: pnpm/action-setup@v6
 
     - name: Setup Nodejs
       if: inputs.DISABLE_NPM_CACHE == 'false'
@@ -138,27 +130,3 @@ runs:
       with:
         mask-password: 'true'
         registries: ${{ inputs.AWS_REGISTRY }}
-
-    - name: Get pnpm Store Directory
-      if: inputs.NODE_PACKAGE_MANAGER == 'pnpm'
-      shell: bash
-      run: |
-        echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-    - name: Setup pnpm Cache Blacksmith
-      if: inputs.NODE_PACKAGE_MANAGER == 'pnpm' && inputs.USE_BLACKSMITH == 'true'
-      uses: useblacksmith/cache@v5
-      with:
-        path: ${{ env.STORE_PATH }}
-        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-        restore-keys: |
-          ${{ runner.os }}-pnpm-store-
-
-    - name: Setup pnpm Cache Non Blacksmith
-      if: inputs.NODE_PACKAGE_MANAGER == 'pnpm' && inputs.USE_BLACKSMITH != 'true'
-      uses: actions/cache@v5
-      with:
-        path: ${{ env.STORE_PATH }}
-        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-        restore-keys: |
-          ${{ runner.os }}-pnpm-store-

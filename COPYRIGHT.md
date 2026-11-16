@@ -1,1 +1,1 @@
-Copyright (C) 2022 Bison Technology Group LLC. All rights reserved.
+Copyright (C) 2026 Bison Technology Group LLC. All rights reserved.

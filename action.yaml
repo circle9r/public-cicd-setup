@@ -13,9 +13,11 @@ inputs:
     required: false
     default: ""
   APP_ID:
-    description: GitHub App ID for main/master builds (version push, workflow triggers). Pass vars.BISON_CI_APP_ID.
+    description: >-
+      GitHub App ID for main/master builds (version push, workflow triggers). Defaults to the org's one CI App,
+      bison-ci (also in org variable BISON_CI_APP_ID). Not a secret. Pass "" to disable the App token.
     required: false
-    default: ""
+    default: "5853321"
   APP_PRIVATE_KEY:
     description: >-
       GitHub App private key. Keep it as a secret of a `release` environment that only main/master can use, so
@@ -23,9 +25,11 @@ inputs:
     required: false
     default: ""
   APP_REPOSITORIES:
-    description: Extra repositories (comma-separated names, e.g. "infra") the App token may reach besides the checked-out one.
+    description: >-
+      Extra repositories (comma-separated names) the App token may reach besides the checked-out one. Default
+      "infra" (bison-cicd setup github triggers its GHCR workflow).
     required: false
-    default: ""
+    default: "infra"
   AWS_ACCESS_KEY_ID:
     description: AWS Access Key ID
     required: false
